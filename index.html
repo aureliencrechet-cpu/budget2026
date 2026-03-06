@@ -381,13 +381,13 @@ footer { text-align: center; font-size: 11px; color: var(--muted2); margin-top: 
 // ══════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════
-const CATS = ['Revenus','Crédits maison','Frais bancaires','Vie courante','Assurances GMF','Abonnements','Provisions'];
+const CATS = ['Revenus','Crédits maison','Frais bancaires','Vie courante','Assurances','Abonnements','Provisions'];
 const CAT_META = {
   'Revenus':         { icon:'💰', bg:'#f0fdf4', color:'#15803d', full:true },
   'Crédits maison':  { icon:'🏠', bg:'#eff6ff', color:'#1d4ed8' },
   'Frais bancaires': { icon:'🏦', bg:'#f5f3ff', color:'#6d28d9' },
   'Vie courante':    { icon:'🛒', bg:'#f0fdf4', color:'#166534' },
-  'Assurances GMF':      { icon:'🛡️', bg:'#fff7ed', color:'#c2410c' },
+  'Assurances':      { icon:'🛡️', bg:'#fff7ed', color:'#c2410c' },
   'Abonnements':     { icon:'📱', bg:'#fdf2f8', color:'#be185d' },
   'Provisions':      { icon:'🎯', bg:'#f8fafc', color:'#475569' },
 };
@@ -402,20 +402,20 @@ const ROWS = [
   { label:'Crédit Maison 2',                   bank:'CA',  v:-89.44,  cat:'Crédits maison' },
   { label:'Crédit Maison 3',                   bank:'CA',  v:-221.83, cat:'Crédits maison' },
   { label:'Crédit Maison Action Logement',     bank:'CA',  v:-147.2,  cat:'Crédits maison' },
-  { label:'Assurance Crédit Maison',           bank:'CA',  v:-27.64,     cat:'Crédits maison' },
-  { label:'Carte Bancaire CA',                 bank:'CA',  v:-4.3,    cat:'Frais bancaires' },
-  { label:'Frais de tenue de compte',          bank:'CA',  v:-2,      cat:'Frais bancaires' },
-  { label:'Carte Bancaire N26',                bank:'N26', v:-5,      cat:'Frais bancaires' },
+  { label:'Crédit Agricole - Crédit Maison',           bank:'CA',  v:-27.64,     cat:'Assurances' },
+  { label:'Crédit Agricole - Carte Bancaire',                 bank:'CA',  v:-4.3,    cat:'Frais bancaires' },
+  { label:'Crédit Agricole - Frais de tenue de compte',          bank:'CA',  v:-2,      cat:'Frais bancaires' },
+  { label:'N26 - Carte Bancaire',                bank:'N26', v:-5,      cat:'Frais bancaires' },
   { label:'Essence',                           bank:'CA',  v:-300,    cat:'Vie courante' },
   { label:'Courses',                           bank:'TR',  v:-400,    cat:'Vie courante' },
-  { label:'Frais Mensualisation',              bank:'CA',  v:-2,      cat:'Assurances GMF' },
-  { label:'Assurance Maison',                  bank:'CA',  v:-30.5,     cat:'Assurances GMF' },
-  { label:'Assurance Voiture',                 bank:'CA',  v:-60.15,     cat:'Assurances GMF' },
+  { label:'GMF - Frais Mensualisation',              bank:'CA',  v:-2,      cat:'Assurances' },
+  { label:'GMF - Assurance Maison',                  bank:'CA',  v:-30.5,     cat:'Assurances' },
+  { label:'GMF - Assurance Voiture',                 bank:'CA',  v:-60.15,     cat:'Assurances' },
   { label:'Canal +',                           bank:'CA',  v:-38.69,     cat:'Abonnements' },
-  { label:'Eau - SYDEC',                               bank:'CA',  v:-41,     cat:'Abonnements' },
-  { label:'Électricité - Total Energie',                      bank:'CA',  v:-110,    cat:'Abonnements' },
-  { label:'Orange : Livebox Fibre',                   bank:'CA',  v:-17.2,   cat:'Abonnements' },
-  { label:'Orange : Mobile Aurélien & Deezer', bank:'CA',  v:-18.2,   cat:'Abonnements' },
+  { label:'SYDEC - Eau',                               bank:'CA',  v:-41,     cat:'Abonnements' },
+  { label:'Total Energie - Électricité',                      bank:'CA',  v:-110,    cat:'Abonnements' },
+  { label:'Orange - Livebox Fibre',                   bank:'CA',  v:-17.2,   cat:'Abonnements' },
+  { label:'Orange - Mobile Aurélien & Deezer', bank:'CA',  v:-18.2,   cat:'Abonnements' },
   { label:'Apple Cloud 200Go',                       bank:'TR',  v:-2.99,   cat:'Abonnements' },
   { label:'Darty Max',                         bank:'TR',  v:-16.99,  cat:'Abonnements' },
   { label:'Roblox',                            bank:'TR',  v:-5.99,   cat:'Abonnements' },
