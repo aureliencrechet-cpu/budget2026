@@ -7,7 +7,7 @@
 <!-- ══ PWA / iOS META ══ -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Budget 2026">
+<meta name="apple-mobile-web-app-title" content="Mon Budget">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1d4ed8">
 <meta name="format-detection" content="telephone=no">
@@ -286,7 +286,7 @@ footer { text-align: center; font-size: 11px; color: var(--muted2); margin-top: 
 <div class="page-header">
   <div class="logo-box">💶</div>
   <div>
-    <h1>Budget 2026</h1>
+    <h1>Mon Budget</h1>
     <p></p>
   </div>
   <div class="save-dot" id="saveDot" title="Données sauvegardées"></div>
@@ -523,15 +523,18 @@ function buildSections() {
 
     const head = document.createElement('div');
     head.className = 'section-head';
-    head.innerHTML = `
-      <div class="section-title">
-        <div class="cat-badge" style="background:${meta.bg};color:${meta.color}">${meta.icon}</div>
-        <span>${cat}</span>
-      </div>
-      <div class="s-right">
-        <span class="s-total neg" id="sct-${sid(cat)}">—</span>
-        <span class="chevron">▼</span>
-      </div>`;
+head.innerHTML = `
+  <div class="section-title">
+    <div class="cat-badge" style="background:${meta.bg};color:${meta.color}">${meta.icon}</div>
+    <span>${cat}</span>
+  </div>
+  <div class="s-right">
+    <div style="text-align:right">
+      <span class="s-total neg" id="sct-${sid(cat)}">—</span>
+      <div style="font-size:9px;color:var(--muted2);font-weight:600;margin-top:1px" id="sct-year-${sid(cat)}">— / an</div>
+    </div>
+    <span class="chevron">▼</span>
+  </div>`;
     head.addEventListener('click', () => card.classList.toggle('open'));
 
     const list = document.createElement('div');
