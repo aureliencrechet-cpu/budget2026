@@ -193,13 +193,6 @@ footer{text-align:center;font-size:11px;color:var(--muted2);margin-top:32px}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px">
   <div class="note-bar">&#x270F;&#xFE0F; Tous les montants mensuels sont modifiables</div>
   <button id="toggleAll" onclick="toggleAllSections()" style="padding:7px 13px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--sh-sm)">&#9660; Tout replier</button>
-<button onclick="exportUpdated()" style="
-  padding:7px 13px;border-radius:5px;border:1px solid #15803d;
-  background:#f0fdf4;color:#15803d;
-  font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;
-  cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--sh-sm)">
-  &#x1F4BE; Enregistrer les montants
-</button>
 </div>
 <div class="sections-grid" id="sections-grid"></div>
 <footer>Budget 2026</footer>
@@ -512,34 +505,7 @@ function toggleAllSections() {
   cards.forEach(c => allOpen ? c.classList.remove('open') : c.classList.add('open'));
   document.getElementById('toggleAll').textContent = allOpen ? '\u25b6 Tout d\u00e9plier' : '\u25bc Tout replier';
 }
-function exportUpdated() {
-  // Lit le source HTML de la page
-  const src = document.documentElement.outerHTML;
 
-  // Reconstruit le bloc ROWS avec les valeurs actuelles
-  const newRows = ROWS.map((r, i) => {
-    const v = vals[i];
-    const vStr = Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
-    return '  { label:\'' + r.label.replace(/'/g,"\\'") + '\', bank:\'' + r.bank + '\', v:' + vStr + ', cat:\'' + r.cat + '\'' + (r.isIncome ? ', isIncome:true' : '') + ' }';
-  }).join(',\n');
-
-  // Remplace le bloc ROWS dans le source
-  const newSrc = src.replace(
-    /const ROWS = \[[\s\S]*?\];/,
-    'const ROWS = [\n' + newRows + '\n];'
-  ).replace(
-    /const DEFAULT_SAV\s*=\s*\{[^}]*\};/,
-    'const DEFAULT_SAV  = { \'pea-ca\':' + savingsVals['pea-ca'] + ', \'cto-tr\':' + savingsVals['cto-tr'] + ', \'livret-ca\':' + savingsVals['livret-ca'] + ' };'
-  );
-
-  // Télécharge le fichier
-  const blob = new Blob([newSrc], { type: 'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Mon_Budget.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
 // ============================================================
 // INIT
 // ============================================================
