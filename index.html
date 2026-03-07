@@ -242,6 +242,7 @@ const GH_USER  = 'aureliencrechet';
 const GH_REPO  = 'budget2026';
 const GH_FILE  = 'index.html';
 const GH_TOKEN_KEY = 'gh_token_budget2026';
+  const GH_TOKEN_PRESET = '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';
 
 // ============================================================
 // DATA
@@ -514,11 +515,11 @@ function toggleAllSections() {
 // GITHUB MODAL
 // ============================================================
 function openGhModal() {
-  const saved = localStorage.getItem(GH_TOKEN_KEY);
-  if (saved) {
-    document.getElementById('ghToken').value = saved;
-    document.getElementById('ghRemember').checked = true;
-  }
+const saved = localStorage.getItem(GH_TOKEN_KEY) || GH_TOKEN_PRESET;
+if (saved) {
+  document.getElementById('ghToken').value = saved;
+  document.getElementById('ghRemember').checked = true;
+}
   document.getElementById('ghStatus').textContent = '';
   document.getElementById('ghStatus').className = 'gh-status';
   document.getElementById('ghOverlay').classList.add('open');
