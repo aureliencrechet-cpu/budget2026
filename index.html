@@ -111,6 +111,24 @@ body{
 .note-bar{display:flex;align-items:center;gap:6px;background:var(--accent-lt);border:1px solid #bdd0ff;border-radius:var(--radius);font-size:11px;color:var(--accent);padding:7px 12px;font-weight:600;flex-wrap:wrap}
 .section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:16px 0 8px;padding-left:2px}
 footer{text-align:center;font-size:11px;color:var(--muted2);margin-top:32px}
+
+/* Modal GitHub */
+.gh-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.gh-overlay.open{display:flex}
+.gh-modal{background:#fff;border-radius:10px;padding:22px 20px 18px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.22)}
+.gh-modal h2{font-size:14px;font-weight:700;margin-bottom:4px}
+.gh-modal p{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.gh-modal label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px}
+.gh-modal input{width:100%;border:1.5px solid var(--border2);border-radius:5px;padding:8px 10px;font-size:12px;font-family:Arial,Helvetica,sans-serif;outline:none;margin-bottom:12px;-webkit-appearance:none}
+.gh-modal input:focus{border-color:var(--accent);background:var(--accent-lt)}
+.gh-modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.gh-btn{padding:8px 16px;border-radius:5px;border:none;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.gh-btn-cancel{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
+.gh-btn-ok{background:#15803d;color:#fff}
+.gh-btn-ok:disabled{background:var(--muted2);cursor:not-allowed}
+.gh-status{font-size:11px;margin-top:10px;min-height:16px;font-weight:600}
+.gh-status.ok{color:var(--green)}
+.gh-status.err{color:var(--red)}
 </style>
 </head>
 <body>
@@ -190,39 +208,52 @@ footer{text-align:center;font-size:11px;color:var(--muted2);margin-top:32px}
 </div>
 
 <div class="section-lbl">&#x1F4CB; D&eacute;tail des postes</div>
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px">
-  <div class="note-bar">&#x270F;&#xFE0F; Tous les montants mensuels sont modifiables</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap">
+  <div class="note-bar" style="flex:1;min-width:160px">&#x270F;&#xFE0F; Tous les montants mensuels sont modifiables</div>
   <button id="toggleAll" onclick="toggleAllSections()" style="padding:7px 13px;border-radius:5px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--sh-sm)">&#9660; Tout replier</button>
+  <button onclick="openGhModal()" style="padding:7px 13px;border-radius:5px;border:1px solid #15803d;background:#f0fdf4;color:#15803d;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--sh-sm)">&#x1F4BE; Enregistrer sur GitHub</button>
 </div>
 <div class="sections-grid" id="sections-grid"></div>
 <footer>Budget 2026</footer>
 
+<!-- Modal GitHub -->
+<div class="gh-overlay" id="ghOverlay">
+  <div class="gh-modal">
+    <h2>&#x1F4BE; Enregistrer sur GitHub</h2>
+    <p>Tes montants seront &eacute;crits directement dans le fichier <strong>index.html</strong> du repo <strong>aureliencrechet/budget2026</strong>.<br>Ton token est stock&eacute; uniquement sur cet appareil.</p>
+    <label for="ghToken">Token GitHub (ghp_...)</label>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <label style="display:flex;align-items:center;gap:6px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="ghRemember" style="width:auto;margin:0"> <span style="font-size:11px;font-weight:400;color:var(--text2)">Retenir le token sur cet appareil</span>
+    </label>
+    <div class="gh-modal-btns">
+      <button class="gh-btn gh-btn-cancel" onclick="closeGhModal()">Annuler</button>
+      <button class="gh-btn gh-btn-ok" id="ghPushBtn" onclick="pushToGithub()">Publier</button>
+    </div>
+    <div class="gh-status" id="ghStatus"></div>
+  </div>
+</div>
+
 <script>
 // ============================================================
+// GITHUB CONFIG
+// ============================================================
+const GH_USER  = 'aureliencrechet';
+const GH_REPO  = 'budget2026';
+const GH_FILE  = 'index.html';
+const GH_TOKEN_KEY = 'gh_token_budget2026';
+
+// ============================================================
 // DATA
-// Valeurs attendues (defaut) :
-//   Revenus      :  2 828,53 / mois  |  33 942,36 / an
-//   Charges      :  2 218,59 / mois  |  26 623,08 / an
-//   Balance brute:    609,94 / mois
-//   Epargne      :    450,00 / mois
-//   Balance nette:    159,94 / mois
 // ============================================================
 const CATS = [
   'Revenus','Credits maison','Frais bancaires',
   'Vie courante','Assurances','Abonnements','Provisions'
 ];
-
-// Labels affich\u00e9s (avec accents) vs ids (sans accents pour DOM)
 const CATS_DISPLAY = [
-  'Revenus',
-  'Cr\u00e9dits maison',
-  'Frais bancaires',
-  'Vie courante',
-  'Assurances',
-  'Abonnements',
-  'Provisions'
+  'Revenus','Cr\u00e9dits maison','Frais bancaires',
+  'Vie courante','Assurances','Abonnements','Provisions'
 ];
-
 const CAT_META = {
   'Revenus':           { icon:'\u{1F4B0}', bg:'#f0fdf4', color:'#15803d', full:true },
   'Credits maison':    { icon:'\u{1F3E0}', bg:'#eff6ff', color:'#1d4ed8' },
@@ -232,33 +263,26 @@ const CAT_META = {
   'Abonnements':       { icon:'\u{1F4F1}', bg:'#fdf2f8', color:'#be185d' },
   'Provisions':        { icon:'\u{1F3AF}', bg:'#f8fafc', color:'#475569' },
 };
-
 const ROWS = [
-  // REVENUS  (total : 2 828,53)
   { label:'Salaire',                                    bank:'CA',  v: 2740,    cat:'Revenus',         isIncome:true },
   { label:'CAF des Landes',                             bank:'CA',  v:   75.53, cat:'Revenus',         isIncome:true },
   { label:'Participation Deezer - Lala',                bank:'CA',  v:    4,    cat:'Revenus',         isIncome:true },
   { label:'Participation Deezer - Serena',              bank:'CA',  v:    4,    cat:'Revenus',         isIncome:true },
   { label:'Participation Deezer & Cloud - Cloclo',      bank:'CA',  v:    5,    cat:'Revenus',         isIncome:true },
   { label:'Prime / Bonus',                              bank:'\u2014', v:  0,   cat:'Revenus',         isIncome:true },
-  // CREDITS MAISON  (total : -745,94)
   { label:'Cr\u00e9dit Maison 1',                       bank:'CA',  v: -287.47, cat:'Credits maison' },
   { label:'Cr\u00e9dit Maison 2',                       bank:'CA',  v:  -89.44, cat:'Credits maison' },
   { label:'Cr\u00e9dit Maison 3',                       bank:'CA',  v: -221.83, cat:'Credits maison' },
   { label:'Cr\u00e9dit Maison Action Logement',         bank:'CA',  v: -147.2,  cat:'Credits maison' },
-  // FRAIS BANCAIRES  (total : -11,30)
   { label:'Cr\u00e9dit Agricole - Carte Bancaire',      bank:'CA',  v:   -4.3,  cat:'Frais bancaires' },
   { label:'Cr\u00e9dit Agricole - Frais tenue compte',  bank:'CA',  v:   -2,    cat:'Frais bancaires' },
   { label:'N26 - Carte Bancaire',                       bank:'N26', v:   -5,    cat:'Frais bancaires' },
-  // VIE COURANTE  (total : -700,00)
   { label:'Essence',                                    bank:'CA',  v: -300,    cat:'Vie courante' },
   { label:'Courses',                                    bank:'TR',  v: -400,    cat:'Vie courante' },
-  // ASSURANCES  (total : -120,29)
   { label:'Cr\u00e9dit Agricole - Cr\u00e9dit Maison', bank:'CA',  v:  -27.64, cat:'Assurances' },
   { label:'GMF - Frais Mensualisation',                 bank:'CA',  v:   -2,    cat:'Assurances' },
   { label:'GMF - Assurance Maison',                     bank:'CA',  v:  -30.5,  cat:'Assurances' },
   { label:'GMF - Assurance Voiture',                    bank:'CA',  v:  -60.15, cat:'Assurances' },
-  // ABONNEMENTS  (total : -251,06)
   { label:'Canal +',                                    bank:'CA',  v:  -38.69, cat:'Abonnements' },
   { label:'SYDEC - Eau',                                bank:'CA',  v:  -41,    cat:'Abonnements' },
   { label:'Total Energie - \u00c9lectricit\u00e9',      bank:'CA',  v: -110,    cat:'Abonnements' },
@@ -267,7 +291,6 @@ const ROWS = [
   { label:'Apple Cloud 200Go',                          bank:'TR',  v:   -2.99, cat:'Abonnements' },
   { label:'Darty Max',                                  bank:'TR',  v:  -16.99, cat:'Abonnements' },
   { label:'Roblox',                                     bank:'TR',  v:   -5.99, cat:'Abonnements' },
-  // PROVISIONS  (total : -390,00)
   { label:'Provisions Coiffeur & Habits',               bank:'N26', v:  -65,    cat:'Provisions' },
   { label:'Provisions Imp\u00f4ts',                     bank:'N26', v:  -75,    cat:'Provisions' },
   { label:'Provisions Sorties',                         bank:'N26', v:  -20,    cat:'Provisions' },
@@ -277,17 +300,14 @@ const ROWS = [
 ];
 
 // ============================================================
-// STORAGE  (v4 = nouveau depart propre)
+// STORAGE
 // ============================================================
 const STORAGE_KEY = 'budget2026_v4';
-
 function loadState() {
-  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; }
-  catch(e) { return null; }
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
 }
 function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ vals, savingsVals, ts: Date.now() })); flashSave(); }
-  catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ vals, savingsVals, ts: Date.now() })); flashSave(); } catch(e) {}
 }
 let _st = null;
 function debouncedSave() {
@@ -302,7 +322,6 @@ function flashSave() {
   dot.className = 'save-dot saved';
   setTimeout(() => { dot.className = 'save-dot'; }, 2000);
 }
-
 const DEFAULT_VALS = ROWS.map(r => r.v);
 const DEFAULT_SAV  = { 'pea-ca':150, 'cto-tr':150, 'livret-ca':150 };
 const saved = loadState();
@@ -313,12 +332,9 @@ const savingsVals = (saved && saved.savingsVals) ? Object.assign({}, DEFAULT_SAV
 // HELPERS
 // ============================================================
 function eur(v) {
-  return (v < 0 ? '\u2212 ' : '') +
-    Math.abs(v).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
+  return (v < 0 ? '\u2212 ' : '') + Math.abs(v).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
 }
-function eurRound(v) {
-  return Math.ceil(Math.abs(v)).toLocaleString('fr-FR') + ' \u20ac';
-}
+function eurRound(v) { return Math.ceil(Math.abs(v)).toLocaleString('fr-FR') + ' \u20ac'; }
 function fmtInp(v) {
   if (v === 0) return '0';
   return Math.abs(v).toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -361,7 +377,6 @@ function buildSections() {
     const catRows = ROWS.map((r,i) => ({...r, idx:i})).filter(r => r.cat === cat);
     const card    = document.createElement('div');
     card.className = 'section-card open' + (meta.full ? ' section-full' : '');
-
     const head = document.createElement('div');
     head.className = 'section-head';
     head.innerHTML =
@@ -377,7 +392,6 @@ function buildSections() {
         '<span class="chevron">\u25bc</span>' +
       '</div>';
     head.addEventListener('click', () => card.classList.toggle('open'));
-
     const list = document.createElement('div');
     list.className = 'row-list';
     catRows.forEach(r => {
@@ -393,12 +407,10 @@ function buildSections() {
         ' inputmode="decimal" value="' + fmtInp(vals[r.idx]) + '">';
       list.appendChild(item);
     });
-
     card.appendChild(head);
     card.appendChild(list);
     grid.appendChild(card);
   });
-
   grid.querySelectorAll('[data-role="rowinp"]').forEach(inp => {
     inp.addEventListener('focus', () => inp.select());
     inp.addEventListener('input', () => {
@@ -406,11 +418,11 @@ function buildSections() {
       styleInp(inp, +inp.dataset.income ? raw : -raw);
     });
     inp.addEventListener('change', () => {
-      const ridx     = +inp.dataset.ridx;
-      const raw      = parseInp(inp.value);
+      const ridx = +inp.dataset.ridx;
+      const raw  = parseInp(inp.value);
       const isIncome = +inp.dataset.income;
-      vals[ridx]     = isIncome ? raw : -raw;
-      inp.value      = fmtInp(vals[ridx]);
+      vals[ridx] = isIncome ? raw : -raw;
+      inp.value  = fmtInp(vals[ridx]);
       styleInp(inp, vals[ridx]);
       refreshAll();
       debouncedSave();
@@ -424,53 +436,45 @@ function buildSections() {
 function refreshAll() {
   const T  = computeTotals(1);
   const TY = computeTotals(12);
-
   document.getElementById('kpi-income').textContent       = eur(T.income);
   document.getElementById('kpi-income-year').textContent  = eur(TY.income);
   document.getElementById('kpi-expense').textContent      = eur(T.expense);
   document.getElementById('kpi-expense-year').textContent = eur(TY.expense);
-
   const bgEl  = document.getElementById('kpi-balance-gross');
   const bgyEl = document.getElementById('kpi-balance-gross-year');
   const bnEl  = document.getElementById('kpi-balance-net');
   const bnyEl = document.getElementById('kpi-balance-net-year');
-  bgEl.textContent  = eur(T.balanceGross);   bgEl.style.color  = T.balanceGross  >= 0 ? 'var(--green)' : 'var(--red)';
-  bgyEl.textContent = eur(TY.balanceGross);  bgyEl.style.color = TY.balanceGross >= 0 ? 'var(--green)' : 'var(--red)';
-  bnEl.textContent  = eur(T.balance);        bnEl.style.color  = T.balance       >= 0 ? 'var(--green)' : 'var(--red)';
-  bnyEl.textContent = eur(TY.balance);       bnyEl.style.color = TY.balance      >= 0 ? 'var(--green)' : 'var(--red)';
-
+  bgEl.textContent  = eur(T.balanceGross);  bgEl.style.color  = T.balanceGross  >= 0 ? 'var(--green)' : 'var(--red)';
+  bgyEl.textContent = eur(TY.balanceGross); bgyEl.style.color = TY.balanceGross >= 0 ? 'var(--green)' : 'var(--red)';
+  bnEl.textContent  = eur(T.balance);       bnEl.style.color  = T.balance       >= 0 ? 'var(--green)' : 'var(--red)';
+  bnyEl.textContent = eur(TY.balance);      bnyEl.style.color = TY.balance      >= 0 ? 'var(--green)' : 'var(--red)';
   let iCA = 0;
   ROWS.forEach((r,i) => { if (r.isIncome && r.bank==='CA') iCA += vals[i]; });
   document.getElementById('pill-income-ca').textContent = eur(iCA);
   document.getElementById('pill-exp-ca').textContent  = eurRound(T.expCA);
   document.getElementById('pill-exp-tr').textContent  = eurRound(T.expTR);
   document.getElementById('pill-exp-n26').textContent = eurRound(T.expN26);
-
   ['pea-ca','cto-tr','livret-ca'].forEach(key => {
     const el = document.getElementById('sav-' + key + '-year');
     if (el) el.textContent = eur(savingsVals[key] * 12);
   });
-
   const pct = T.income > 0 ? Math.min(100, (T.expense + T.savTotal) / T.income * 100) : 0;
   document.getElementById('prog-pct').textContent  = pct.toFixed(1) + '%';
   document.getElementById('prog-fill').style.width = pct + '%';
-
   CATS.forEach(cat => {
     const rows  = ROWS.map((r,i) => ({...r,idx:i})).filter(r => r.cat === cat);
     const total = rows.reduce((s,r) => s + vals[r.idx], 0);
-    const el    = document.getElementById('sct-' + sid(cat));
+    const el  = document.getElementById('sct-' + sid(cat));
     if (el) { el.textContent = eur(total); el.className = 's-total ' + (total >= 0 ? 'pos' : 'neg'); }
     const elY = document.getElementById('sct-year-' + sid(cat));
     if (elY) { elY.textContent = eur(total * 12) + ' / an'; elY.style.color = total >= 0 ? 'var(--green)' : 'var(--red)'; }
   });
-
   document.querySelectorAll('[data-role="yearbadge"]').forEach(el => {
     const yv = vals[+el.dataset.ridx] * 12;
     el.textContent      = eur(yv);
     el.style.color      = yv >= 0 ? 'var(--green)' : 'var(--amber)';
     el.style.background = yv >= 0 ? 'var(--green-lt)' : 'var(--amber-lt)';
   });
-
   document.querySelectorAll('[data-role="rowinp"]').forEach(inp => {
     if (document.activeElement === inp) return;
     const ridx = +inp.dataset.ridx;
@@ -500,10 +504,133 @@ function bindSavings() {
 // TOGGLE ALL
 // ============================================================
 function toggleAllSections() {
-  const cards   = document.querySelectorAll('#sections-grid .section-card');
+  const cards = document.querySelectorAll('#sections-grid .section-card');
   const allOpen = Array.from(cards).every(c => c.classList.contains('open'));
   cards.forEach(c => allOpen ? c.classList.remove('open') : c.classList.add('open'));
   document.getElementById('toggleAll').textContent = allOpen ? '\u25b6 Tout d\u00e9plier' : '\u25bc Tout replier';
+}
+
+// ============================================================
+// GITHUB MODAL
+// ============================================================
+function openGhModal() {
+  const saved = localStorage.getItem(GH_TOKEN_KEY);
+  if (saved) {
+    document.getElementById('ghToken').value = saved;
+    document.getElementById('ghRemember').checked = true;
+  }
+  document.getElementById('ghStatus').textContent = '';
+  document.getElementById('ghStatus').className = 'gh-status';
+  document.getElementById('ghOverlay').classList.add('open');
+  setTimeout(() => {
+    const t = document.getElementById('ghToken');
+    if (!t.value) t.focus();
+  }, 100);
+}
+function closeGhModal() {
+  document.getElementById('ghOverlay').classList.remove('open');
+}
+document.getElementById('ghOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeGhModal();
+});
+
+// ============================================================
+// GITHUB PUSH
+// ============================================================
+async function pushToGithub() {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) { setGhStatus('Saisis ton token GitHub.', 'err'); return; }
+
+  const remember = document.getElementById('ghRemember').checked;
+  if (remember) { localStorage.setItem(GH_TOKEN_KEY, token); }
+  else          { localStorage.removeItem(GH_TOKEN_KEY); }
+
+  const btn = document.getElementById('ghPushBtn');
+  btn.disabled = true;
+  setGhStatus('Lecture du fichier sur GitHub\u2026', '');
+
+  try {
+    // 1. R\u00e9cup\u00e8re le SHA actuel du fichier (obligatoire pour l\u2019API)
+    const infoRes = await fetch(
+      'https://api.github.com/repos/' + GH_USER + '/' + GH_REPO + '/contents/' + GH_FILE,
+      { headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } }
+    );
+    if (!infoRes.ok) {
+      const err = await infoRes.json();
+      throw new Error(err.message || 'Erreur lecture GitHub (' + infoRes.status + ')');
+    }
+    const info = await infoRes.json();
+    const sha  = info.sha;
+
+    setGhStatus('Pr\u00e9paration du contenu\u2026', '');
+
+    // 2. Reconstruit le contenu HTML avec les nouvelles valeurs
+    const rawB64 = info.content.replace(/\n/g, '');
+    const currentHtml = decodeURIComponent(escape(atob(rawB64)));
+
+    // Reconstruit le bloc ROWS
+    const newRowsStr = ROWS.map((r, i) => {
+      const v = vals[i];
+      const vStr = Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
+      let line = "  { label:'" + r.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'") +
+                 "', bank:'" + r.bank.replace(/'/g,"\\'") +
+                 "', v:" + vStr +
+                 ", cat:'" + r.cat + "'";
+      if (r.isIncome) line += ', isIncome:true';
+      line += ' }';
+      return line;
+    }).join(',\n');
+
+    // Reconstruit DEFAULT_SAV
+    const newSav = "const DEFAULT_SAV  = { 'pea-ca':" + savingsVals['pea-ca'] +
+                   ", 'cto-tr':" + savingsVals['cto-tr'] +
+                   ", 'livret-ca':" + savingsVals['livret-ca'] + ' };';
+
+    let newHtml = currentHtml
+      .replace(/const ROWS = \[[\s\S]*?\];/, 'const ROWS = [\n' + newRowsStr + '\n];')
+      .replace(/const DEFAULT_SAV\s*=\s*\{[^}]*\};/, newSav);
+
+    // 3. Encode en base64
+    const newB64 = btoa(unescape(encodeURIComponent(newHtml)));
+
+    setGhStatus('Publication sur GitHub\u2026', '');
+
+    // 4. PUT vers l\u2019API GitHub
+    const putRes = await fetch(
+      'https://api.github.com/repos/' + GH_USER + '/' + GH_REPO + '/contents/' + GH_FILE,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'token ' + token,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Budget : mise \u00e0 jour des montants',
+          content: newB64,
+          sha: sha
+        })
+      }
+    );
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || 'Erreur \u00e9criture GitHub (' + putRes.status + ')');
+    }
+
+    setGhStatus('\u2705 Fichier mis \u00e0 jour sur GitHub !', 'ok');
+    setTimeout(closeGhModal, 1800);
+
+  } catch(e) {
+    setGhStatus('\u274C ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function setGhStatus(msg, cls) {
+  const el = document.getElementById('ghStatus');
+  el.textContent = msg;
+  el.className = 'gh-status' + (cls ? ' ' + cls : '');
 }
 
 // ============================================================
@@ -518,7 +645,6 @@ function init() {
   refreshAll();
   if (saved) flashSave();
 }
-
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
